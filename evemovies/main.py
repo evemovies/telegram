@@ -1,6 +1,5 @@
-import os
 import logging
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from telegram.ext import ApplicationBuilder, ConversationHandler
 from evemovies.start.handlers import start_handlers
 from evemovies.main.handlers import main_handlers
@@ -8,8 +7,7 @@ from evemovies.search.handlers import search_handlers
 from evemovies.movies.handlers import movies_handlers
 from evemovies.settings.handlers import settings_handlers
 from evemovies.helpers.stages import stages as stages_map
-
-load_dotenv()
+from evemovies.helpers.expose_user_middleware import expose_user_handler
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -17,7 +15,7 @@ logging.basicConfig(
 )
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(os.getenv('TELEGRAM_TOKEN')).build()
+    application = ApplicationBuilder().token(dotenv_values()['TELEGRAM_TOKEN']).build()
 
     conversation = ConversationHandler(
         per_user=True,
@@ -32,5 +30,6 @@ if __name__ == '__main__':
         fallbacks=[],
     )
 
-    application.add_handler(conversation)
+    application.add_handler(expose_user_handler, 0)
+    application.add_handler(conversation, 1)
     application.run_polling()

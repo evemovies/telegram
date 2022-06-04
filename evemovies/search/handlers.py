@@ -3,12 +3,12 @@ from telegram.ext import filters, CallbackContext, MessageHandler
 from evemovies.helpers import stages
 
 
-async def _handle_search_movie_search(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def _handle_search_movie_search(update: Update, context: CallbackContext.DEFAULT_TYPE) -> None:
     print(f'handling movie search {update.message.text}')
     print('should reply with back keyboard')
 
 
-async def _handle_search_leave(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def _handle_search_leave(update: Update, context: CallbackContext.DEFAULT_TYPE) -> int:
     print('leaving search stage')
     print('should reply with main keyboard')
     return stages.STAGE_MAIN

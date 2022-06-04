@@ -3,16 +3,16 @@ from telegram.ext import filters, CallbackContext, MessageHandler
 from evemovies.helpers import stages
 
 
-async def _handle_main_any_text(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def _handle_main_any_text(update: Update, context: CallbackContext.DEFAULT_TYPE) -> None:
     print('wrong text, suggest to choose action from the keyboard')
 
 
-async def _handle_main_goto_search(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def _handle_main_goto_search(update: Update, context: CallbackContext.DEFAULT_TYPE) -> int:
     print('going to search')
     return stages.STAGE_SEARCH
 
 
-async def _handle_main_goto_settings(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def _handle_main_goto_settings(update: Update, context: CallbackContext.DEFAULT_TYPE) -> int:
     print('going to settings')
     return stages.STAGE_SETTINGS
 
