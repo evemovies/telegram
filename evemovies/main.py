@@ -1,12 +1,14 @@
 import logging
 from dotenv import dotenv_values
 from telegram.ext import ApplicationBuilder, ConversationHandler
-from evemovies.start.handlers import start_handlers
-from evemovies.main.handlers import main_handlers
-from evemovies.search.handlers import search_handlers
-from evemovies.movies.handlers import movies_handlers
-from evemovies.settings.handlers import settings_handlers
-from evemovies.helpers.stages import stages as stages_map
+
+from evemovies.stages.stage import BaseStage
+from evemovies.stages.main.main_stage import MainStage
+from evemovies.stages.start.start_stage import StartStage
+from evemovies.stages.search.search_stage import SearchStage
+from evemovies.stages.movies.movies_stage import MoviesStage
+from evemovies.stages.settings.settings_stage import SettingsStage
+
 from evemovies.helpers.expose_user_middleware import expose_user_handler
 
 logging.basicConfig(
@@ -17,16 +19,24 @@ logging.basicConfig(
 if __name__ == "__main__":
     application = ApplicationBuilder().token(dotenv_values()["TELEGRAM_TOKEN"]).build()
 
+    all_stages = {
+        "main_stage": MainStage(),
+        "start_stage": StartStage(),
+        "search_stage": SearchStage(),
+        "movies_stage": MoviesStage(),
+        "settings_stage": SettingsStage(),
+    }
+
+    conversation_states = {}
+
+    for stage_name, stage_index in BaseStage.stages.items():
+        conversation_states[stage_index] = all_stages[stage_name].get_handlers()
+
     conversation = ConversationHandler(
         per_user=True,
 
-        entry_points=start_handlers,
-        states={
-            stages_map["STAGE_MAIN"]: main_handlers,
-            stages_map["STAGE_SEARCH"]: search_handlers,
-            stages_map["STAGE_MOVIES"]: movies_handlers,
-            stages_map["STAGE_SETTINGS"]: settings_handlers
-        },
+        entry_points=all_stages["start_stage"].get_handlers(),
+        states=conversation_states,
         fallbacks=[],
     )
 
