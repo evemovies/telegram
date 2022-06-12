@@ -1,6 +1,7 @@
 import logging
 from dotenv import dotenv_values
-from telegram.ext import ApplicationBuilder, ConversationHandler
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import ApplicationBuilder, ConversationHandler, CallbackContext, CommandHandler
 
 from evemovies.stages.stage import BaseStage
 from evemovies.stages.main.main_stage import MainStage
@@ -15,6 +16,15 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
+
+
+async def handle_saveme(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    main_keyboard = BaseStage.get_main_keyboard(context)
+
+    await update.message.reply_text("Something went wrong, try again", reply_markup=ReplyKeyboardMarkup(main_keyboard))
+
+    return 0
+
 
 if __name__ == "__main__":
     application = ApplicationBuilder().token(dotenv_values()["TELEGRAM_TOKEN"]).build()
@@ -34,10 +44,9 @@ if __name__ == "__main__":
 
     conversation = ConversationHandler(
         per_user=True,
-
         entry_points=all_stages["start_stage"].get_handlers(),
         states=conversation_states,
-        fallbacks=[],
+        fallbacks=[CommandHandler('saveme', handle_saveme)],
     )
 
     # TODO: add /saveme command

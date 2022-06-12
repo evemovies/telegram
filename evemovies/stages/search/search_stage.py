@@ -17,5 +17,9 @@ class SearchStage(BaseStage):
     async def _search_movie(self, update: Update, context: CallbackContext.DEFAULT_TYPE):
         back_keyboard = BaseStage.get_back_keyboard(context)
 
+        movies = self.requests.get("/api/v1/movies/search-movie?language=en&title=last%20duel&year=2021").json()
+
+        print(movies)
+
         await update.message.reply_text(f"Searching for a movie {update.message.text}",
                                         reply_markup=ReplyKeyboardMarkup(back_keyboard))

@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 from telegram import KeyboardButton, Update, ReplyKeyboardMarkup
 from telegram.ext import filters, CallbackContext, MessageHandler, CommandHandler
+
 from evemovies.locales.locale import locales
+from evemovies.helpers.requests_session import session
 
 
 class BaseStage(ABC):
@@ -10,15 +12,11 @@ class BaseStage(ABC):
 
     @abstractmethod
     def __init__(self, stage_name):
+        self.requests = session
         self.keyboard_listeners = []
         self.command_listeners = []
         self.text_listeners = []
-        BaseStage._add_stage(stage_name)
-
-    @staticmethod
-    def _add_stage(stage_name):
-        stage_index = len(BaseStage.stages)
-        BaseStage.stages[stage_name] = stage_index
+        self._add_stage(stage_name)
 
     @staticmethod
     def get_main_keyboard(context: CallbackContext.DEFAULT_TYPE):
@@ -45,6 +43,10 @@ class BaseStage(ABC):
         language = context.user_data["user"]["language"]
 
         return locales[language]
+
+    def _add_stage(self, stage_name):
+        stage_index = len(BaseStage.stages)
+        BaseStage.stages[stage_name] = stage_index
 
     def get_handlers(self):
         listeners = []
