@@ -1,7 +1,6 @@
 import logging
 from dotenv import dotenv_values
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, ConversationHandler, CallbackContext, CommandHandler
+from telegram.ext import ApplicationBuilder, ConversationHandler, CommandHandler
 
 from evemovies.stages.stage import BaseStage
 from evemovies.stages.main.main_stage import MainStage
@@ -11,20 +10,12 @@ from evemovies.stages.movies.movies_stage import MoviesStage
 from evemovies.stages.settings.settings_stage import SettingsStage
 
 from evemovies.helpers.expose_user_middleware import expose_user_handler
+from evemovies.helpers.general_commands import handle_saveme
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
-
-
-async def handle_saveme(update: Update, context: CallbackContext.DEFAULT_TYPE):
-    main_keyboard = BaseStage.get_main_keyboard(context)
-
-    await update.message.reply_text("Something went wrong, try again", reply_markup=ReplyKeyboardMarkup(main_keyboard))
-
-    return 0
-
 
 if __name__ == "__main__":
     application = ApplicationBuilder().token(dotenv_values()["TELEGRAM_TOKEN"]).build()
@@ -40,13 +31,14 @@ if __name__ == "__main__":
     conversation_states = {}
 
     for stage_name, stage_index in BaseStage.stages.items():
-        conversation_states[stage_index] = all_stages[stage_name].get_handlers()
+        conversation_states[stage_index] = \
+            all_stages[stage_name].get_handlers() + all_stages[stage_name].get_inline_handlers()
 
     conversation = ConversationHandler(
         per_user=True,
         entry_points=all_stages["start_stage"].get_handlers(),
         states=conversation_states,
-        fallbacks=[CommandHandler('saveme', handle_saveme)],
+        fallbacks=[CommandHandler("saveme", handle_saveme)],
     )
 
     # TODO: add /saveme command

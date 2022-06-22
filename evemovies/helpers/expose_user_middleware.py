@@ -8,7 +8,7 @@ from evemovies.helpers.requests_session import session
 BASE_URL = dotenv_values()["API_BASE_URL"]
 
 
-async def _expose_user_to_context(update: Update, context: CallbackContext.DEFAULT_TYPE) -> None:
+async def _expose_user_to_context(update: Update, context: CallbackContext.DEFAULT_TYPE):
     if "user" in context.user_data:
         return
 

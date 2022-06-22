@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 from telegram import KeyboardButton, Update, ReplyKeyboardMarkup
-from telegram.ext import filters, CallbackContext, MessageHandler, CommandHandler
+from telegram.ext import filters, CallbackContext, MessageHandler, CommandHandler, CallbackQueryHandler
 
 from evemovies.locales.locale import locales
 from evemovies.helpers.requests_session import session
@@ -16,6 +16,7 @@ class BaseStage(ABC):
         self.keyboard_listeners = []
         self.command_listeners = []
         self.text_listeners = []
+        self.inline_button_listeners = []
         self._add_stage(stage_name)
 
     @staticmethod
@@ -39,14 +40,30 @@ class BaseStage(ABC):
         ]
 
     @staticmethod
-    def get_user_locales(context: CallbackContext.DEFAULT_TYPE) -> Dict[str, Any]:
+    def get_user_locales(context: CallbackContext.DEFAULT_TYPE):
         language = context.user_data["user"]["language"]
 
         return locales[language]
 
+    @staticmethod
+    def save_movies_to_user_data(context: CallbackContext.DEFAULT_TYPE, movies):
+        movies_map = {}
+
+        for movie in movies:
+            movies_map[movie["id"]] = movie
+
+        context.user_data["current_movies"] = movies_map
+
     def _add_stage(self, stage_name):
         stage_index = len(BaseStage.stages)
         BaseStage.stages[stage_name] = stage_index
+
+    async def _go_back(self, update: Update, context: CallbackContext.DEFAULT_TYPE):
+        main_keyboard = BaseStage.get_main_keyboard(context)
+
+        await update.message.reply_text("Returning to the main stage", reply_markup=ReplyKeyboardMarkup(main_keyboard))
+
+        return BaseStage.stages["main_stage"]
 
     def get_handlers(self):
         listeners = []
@@ -66,9 +83,10 @@ class BaseStage(ABC):
 
         return listeners
 
-    async def _go_back(self, update: Update, context: CallbackContext.DEFAULT_TYPE):
-        main_keyboard = BaseStage.get_main_keyboard(context)
+    def get_inline_handlers(self):
+        inline_listeners = []
 
-        await update.message.reply_text("Returning to the main stage", reply_markup=ReplyKeyboardMarkup(main_keyboard))
+        for listener in self.inline_button_listeners:
+            inline_listeners.append(CallbackQueryHandler(listener))
 
-        return BaseStage.stages["main_stage"]
+        return inline_listeners

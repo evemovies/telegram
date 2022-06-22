@@ -13,7 +13,7 @@ class MainStage(BaseStage):
             {"keyboard": "main_keyboard", "term": "movies", "handler": self._goto_movies}
         ]
 
-    async def _goto_search(self, update: Update, context: CallbackContext.DEFAULT_TYPE) -> int:
+    async def _goto_search(self, update: Update, context: CallbackContext.DEFAULT_TYPE):
         user_locales = BaseStage.get_user_locales(context)
         back_keyboard = BaseStage.get_back_keyboard(context)
 
@@ -22,7 +22,7 @@ class MainStage(BaseStage):
 
         return BaseStage.stages["search_stage"]
 
-    async def _goto_settings(self, update: Update, context: CallbackContext.DEFAULT_TYPE) -> int:
+    async def _goto_settings(self, update: Update, context: CallbackContext.DEFAULT_TYPE):
         user_locales = BaseStage.get_user_locales(context)
         back_keyboard = BaseStage.get_back_keyboard(context)
 
@@ -31,7 +31,7 @@ class MainStage(BaseStage):
 
         return BaseStage.stages["settings_stage"]
 
-    async def _goto_movies(self, update: Update, context: CallbackContext.DEFAULT_TYPE) -> int:
+    async def _goto_movies(self, update: Update, context: CallbackContext.DEFAULT_TYPE):
         user_locales = BaseStage.get_user_locales(context)
         back_keyboard = BaseStage.get_back_keyboard(context)
 
