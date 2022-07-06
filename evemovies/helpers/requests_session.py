@@ -16,5 +16,10 @@ class RequestsManager:
 
         return self.session.get(full_url, *args, **kwargs)
 
+    def post(self, url, data, *args, **kwargs):
+        full_url = BASE_URL + url
+
+        return self.session.post(full_url, data)
+
 
 session = RequestsManager()

@@ -31,7 +31,9 @@ class SearchStage(BaseStage):
         await query.answer()
 
     async def _select_movie(self, context: CallbackContext.DEFAULT_TYPE, query: CallbackQuery):
+        movies = context.user_data["current_movies"]
         formatted_query_data = json.loads(query.data)
+        selected_movie = movies[formatted_query_data["p"]]
 
         movie_selected_keyboard = [
             [
@@ -39,15 +41,23 @@ class SearchStage(BaseStage):
                 InlineKeyboardButton("Add", callback_data=json.dumps({"a": "add", "p": formatted_query_data["p"]})),
             ]
         ]
-        await query.edit_message_text("chosen", reply_markup=InlineKeyboardMarkup(movie_selected_keyboard))
+
+        await query.edit_message_text(f"You've chosen movie: {selected_movie['title']}",
+                                      reply_markup=InlineKeyboardMarkup(movie_selected_keyboard))
 
         await query.answer()
 
     async def _add_selected_movie(self, context: CallbackContext.DEFAULT_TYPE, query: CallbackQuery):
         movies = context.user_data["current_movies"]
         formatted_query_data = json.loads(query.data)
+        user_id = context.user_data["user"]["id"]
 
-        print("Adding movie for a user", movies[formatted_query_data["p"]])
+        response = self.requests.post(f"/api/v1/users/{user_id}/add-movie", movies[formatted_query_data["p"]]).json()
+
+        if "error" in response:
+            await query.edit_message_text(response["error"])
+        else:
+            await query.edit_message_text("Movie has been added!")
 
         await query.answer()
 
@@ -57,7 +67,7 @@ class SearchStage(BaseStage):
         movie_buttons = []
         for movie in movies.values():
             movie_buttons.append([InlineKeyboardButton(f"{movie['title']} {movie['year']}",
-                                                       callback_data=json.dumps({"a": "movie", "p": movie['id']}))])
+                                                       callback_data=json.dumps({"a": "movie", "p": movie["id"]}))])
 
         await query.edit_message_text("Results", reply_markup=InlineKeyboardMarkup(movie_buttons))
         await query.answer()
@@ -72,7 +82,7 @@ class SearchStage(BaseStage):
         movie_buttons = []
         for movie in movies:
             movie_buttons.append([InlineKeyboardButton(f"{movie['title']} {movie['year']}",
-                                                       callback_data=json.dumps({"a": "movie", "p": movie['id']}))])
+                                                       callback_data=json.dumps({"a": "movie", "p": movie["id"]}))])
 
         await update.message.reply_text(f"Searching for a movie {update.message.text}",
                                         reply_markup=InlineKeyboardMarkup(movie_buttons))
